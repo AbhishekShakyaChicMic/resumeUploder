@@ -1,60 +1,23 @@
 const { createSuccessResponseWithStatus, createFailResponse } = require("../helper");
-const message = require('./../utils/message');
+const message = require('../utils/message');
 const userModel = require("../model/userModel");
 const dbServices = require("../services/dbServices");
+const { transporter } = require("../services/emailServices");
 const utils = require("../utils/utils");
+const transporter1 = require("../services/emailServices");
 
 
 const userControllers = {};
 
-userControllers.hello = async (payloads) => {
-    const result = createSuccessResponseWithStatus(message.HELLO);
-    return result;
-}
-
-userControllers.signup = async (payload) => {
-    const { name, email, password, mobile } = payload;
-    
-    const user =await dbServices.findOneData(userModel,{email:email})
-    
-    if (user && user.isDeleted !== true) {
-        throw createFailResponse(message.USERID_ALREADY_EXISTS, "ALREADY_EXISTS");
-    }
-    const hash = await utils.hashPassword(password);
-    await dbServices.updateOneData(userModel, { email: email }, { name, email, password: hash, mobile, isDeleted:false }, { upsert: true });
-    
-    const result = createSuccessResponseWithStatus(message.USER_REGISTERED, payload);
-    return result;
-}
-
-userControllers.login = async (payload) => {
-    const { email, password } = payload;
-    const user = await dbServices.findOneData(userModel, { email: email });
-    if (!user || user.isDeleted) {
-        throw createFailResponse(message.USER_NOT_REGISTERED, "DATA_NOT_FOUND");
-    }
-    if (!await utils.compareHash(password, user.password)) {
-        throw createFailResponse(message.WRONG_PASSWORD, "FORBIDDEN");
-    }
-    
-    const accessToken = utils.encryptJwt({userId:user._id}, '1m');
-    const refreshToken = utils.encryptJwt({ userId: user._id }, '1d');
-    
-    const data = {
-        accessToken,
-        refreshToken
-    }
-    
-    const result = createSuccessResponseWithStatus(message.LOGIN, data);
-    return result;
-}
-
-userControllers.getProfileDetails = async (payload) => {
+userControllers.getProfileDetailsById = async (payload) => {
     const { id } = payload;
 
-    if (id.toString() !== payload.user.userId.toString()) {
+    const user1 = await dbServices.findOneData(userModel, { _id: payload.user.userId });
+
+    if ((id.toString() !== payload.user.userId.toString())&&user1.role!=='admin') {
         throw createFailResponse(message.FORBIDDEN, "FORBIDDEN");
     }
+
     const user = await dbServices.findOneData(userModel, { _id: id });
 
     const data = {
@@ -65,5 +28,93 @@ userControllers.getProfileDetails = async (payload) => {
     const result = createSuccessResponseWithStatus(message.SUCCESS, data);
     return result;
 }
+
+userControllers.updateProfile=async (payload) => {
+    const data = {};
+    if (payload.name) {
+        data.name = payload.name;
+    }
+    if (payload.mobile) {
+        data.mobile = payload.mobile;
+    }
+
+    const feedBack = await dbServices.updateOneData(userModel, { _id: payload.user.userId }, { $set: data }, { upsert: false });
+    if (feedBack.matchedCount === 0) {
+        throw createFailResponse(message.NOT_FOUND, "NOT_FOUND");
+    }
+    const result = createSuccessResponseWithStatus(message.SUCCESS);
+    return result;
+}
+
+userControllers.deleteProfileById=async (payload) => {
+    const { id } = payload;
+    const user = await dbServices.findOneData(userModel, { _id: payload.user.userId });
+    if ((id.toString() !== payload.user.userId.toString())&&user.role!=='admin') {
+        throw createFailResponse(message.FORBIDDEN, "FORBIDDEN");
+    }
+    const feedBack = await dbServices.updateOneData(userModel, { _id: id }, { $set: { isDeleted: true } }, { upsert: false });
+    if (feedBack.matchedCount === 0) {
+        throw createFailResponse(message.NOT_FOUND, "NOT_FOUND");
+    }
+    const result = createSuccessResponseWithStatus(message.SUCCESS);
+    return result;
+}
+
+userControllers.forgetPassword=async (payload) => {
+    const { email } = payload;
+    console.log(email);
+    try {
+        const user = await dbServices.findOneData(userModel, { email: email });
+        console.log(user);
+        if (!user || user.isDeleted) {
+            throw createFailResponse(message.USER_NOT_REGISTERED, "DATA_NOT_FOUND");
+        }
+    
+        const token = utils.encryptJwt({ userId: user._id }, '5m');
+        
+        //server url where backend code is hosted
+        const resetURL = `http://localhost:5555/changePassword?token=${token}`;
+    
+        const mailOptions = {
+            from: 'abhi75191112@gmail.com',
+            to:email,
+            subject:"ToReset Password",
+            text: resetURL,
+            html: `<p>Click the link below to reset your password:</p>
+           <a href="${resetURL}">${resetURL}</a>`,
+        };
+        await transporter1.sendMail(mailOptions);
+        const result = createSuccessResponseWithStatus(message.SUCCESS);
+        return result;
+    } catch (err) {
+        throw createFailResponse(err.message,"SERVER_ERROR")
+    }
+}
+
+userControllers.changePassword=async (payload) => {
+    const { password, token } = payload;
+    console.log(password,token);
+    if (!token) {
+        throw createFailResponse(message.TOKEN_NOT_AVAIL,"DATA_NOT_FOUND");
+    }
+    try {
+        const ans = await utils.decryptJwt(token);
+        console.log(ans);
+        const pass = await utils.hashPassword(password);
+        const feedBack = await dbServices.updateOneData(userModel, { _id: ans.userId }, { $set: { password: pass } }, { upsert: false });
+        if (feedBack.matchedCount === 0) {
+            throw createFailResponse(message.NOT_FOUND, "DATA_NOT_FOUND");
+        }
+        const result = createSuccessResponseWithStatus(message.CHANGE_PASSWORD);
+        return result;
+    } catch (err) {
+        console.log(err);
+        throw createFailResponse(message.P, "SERVER_ERROR");
+    }
+}
+
+// userControllers.createNewReferessToken=async (payload) => {
+//     const {}
+// }
 
 module.exports = userControllers;

@@ -65,6 +65,17 @@ const getHandlerMethod = (route) => {
             if (result.accessToken) {
                 return res.status(result.statusCode).json({msg:result.status,token:result.accessToken});
             }
+            if (result?.filePath) {
+                upload(req, res, (err) => {
+                    if (err) {
+                        return res.status(500).json({ err: err.message });
+                    }
+                    if (!req.file) {
+                        return res.status(400).json({ msg: "File is required to upload" });
+                    }
+                    return res.status(200).send(result.filePath);
+                })
+            }
             if (result.statusCode) {
                 return res.status(result.statusCode).json(result);
             } else {

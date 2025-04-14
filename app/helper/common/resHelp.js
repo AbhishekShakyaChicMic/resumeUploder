@@ -49,6 +49,18 @@ const RESPONSE = {
                 obj = { ...obj, ...data };
             }
             return obj;
+        },
+        SERVER_ERROR: (data, msg) => {
+            let obj = {
+                status: false,
+                statusCode: 500,
+                message: msg || '',
+                type: "SERVER ERROR"
+            };
+            if (data) {
+                obj = { ...obj, ...data };
+            }
+            return obj;
         }
     },
     SUCCESS: {
@@ -82,8 +94,9 @@ function createSuccessResponseWithoutStatus(msg, data) {
     return RESPONSE.SUCCESS.WITHOUTSTATUS(data, msg);
 }
 
-function createFailResponse(msg,error_type, data){
-    return RESPONSE.ERROR[error_type](data, msg);
+function createFailResponse(msg, error_type, data) {
+    console.log(msg, error_type, data);
+    return RESPONSE.ERROR[error_type](data,msg);
 }
 
 module.exports = {

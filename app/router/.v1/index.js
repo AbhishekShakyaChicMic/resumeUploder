@@ -1,4 +1,4 @@
 module.exports = [
-    ...require('./helloRoute.js'),
     ...require('./userRoute.js'),
+    ...require('./authRoute.js'),
 ]

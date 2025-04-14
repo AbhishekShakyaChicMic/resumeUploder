@@ -1,4 +1,7 @@
 module.exports = {
+    PASSWORD_NOT_CHANGE:"Password is not change",
+    TOKEN_NOT_AVAIL:"Token is not found",
+    FAIL_TO_SEND_EMAIL: "Failed to send email",
     LOGIN:"User login successfully",
     USER_REGISTERED: "new user is register",
     EMAIL_ALREADY_EXISTS: "email already register",

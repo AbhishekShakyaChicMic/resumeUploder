@@ -17,7 +17,7 @@ authService.authenticateUser = () => async(req, res, next) => {
         let result = utils.decryptJwt(token);
         const user = await dbServices.findOneData(userModel, { _id: result.userId });
         if (!user || (user && user.isDeleted)) {
-            return res.status(401).json({ msg: message.FORBIDDEN });
+            return res.status(404).json({ msg: message.USER_NOT_REGISTERED });
         }
         req.user = result;
         next();
