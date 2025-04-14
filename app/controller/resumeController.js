@@ -9,9 +9,9 @@ const userControllers = require("./userController");
 
 const resumeController = {};
 
-// resumeController.uploadResume = async (payload) => {
+resumeController.uploadResume = async (payload) => {
     
-// };
+};
 
 resumeController.getResumeById=async (payload) => {
     const resume = await findOneData(resumeModel, { userId: payload.id });
@@ -50,14 +50,20 @@ resumeController.getAllResume=async (payload) => {
 }
 
 resumeController.resumeUploadSuccess=async (payload) => {
-    const { to, subject, text, html } = payload;
+    const { email } = payload;
+
+    const user = await dbServices.findOneData(userModel, { email: email });
+    
+    if (!user || user.isDeleted) {
+        throw createFailResponse(message.USER_NOT_REGISTERED, "DATA_NOT_FOUND");
+    }
 
     const mailOptions = {
         from: '"Abhishekh kumar" <abhi75191112@gmail.com>',
-        to,      
-        subject, 
-        text,    
-        html 
+        to:user.email,      
+        subject:"Resume Upload Successfully", 
+        text:"Resume Uploaded",    
+        html :`<p>Resume Uploaded Successfully</p>`
     };
 
     try {

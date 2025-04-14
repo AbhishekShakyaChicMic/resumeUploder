@@ -5,7 +5,6 @@ dbServices.findData = async(model,filter) => {
     return model.find(filter).lean();
 }
 
-
 //find Data
 dbServices.findOneData=async (model,filter) => {
     return model.findOne(filter);
