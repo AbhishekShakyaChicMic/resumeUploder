@@ -17,17 +17,4 @@ utils.encryptJwt = (payload, expTime = '1m') => jwt.sign(payload, constants.JWT_
 
 utils.decryptJwt = (token) => jwt.verify(token, constants.JWT_SIGN_KEY, { algorithm: 'HS256' });
 
-//generate otp
-utils.generateOTP = () => {
-    const length = 6;
-    let chars = "1234567890"
-
-    let otp = "";
-    for (let i = 0; i < length; i++) {
-        const randIdx = Math.floor(Math.random() * chars.length);
-        otp += chars[randIdx];
-    }
-    return otp;
-}
-
 module.exports = utils;

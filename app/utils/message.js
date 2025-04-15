@@ -1,4 +1,8 @@
 module.exports = {
+    FILE_DOWNLOAD: "Successfully downloaded",
+    FILE_REQUIRED:"File required to upload",
+    UPLOAD_RESUME:"Upload Resume Successfully",
+    SERVER_ERROR:"Server error",
     PASSWORD_NOT_CHANGE:"Password is not change",
     TOKEN_NOT_AVAIL:"Token is not found",
     FAIL_TO_SEND_EMAIL: "Failed to send email",

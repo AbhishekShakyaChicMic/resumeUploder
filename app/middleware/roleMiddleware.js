@@ -3,7 +3,8 @@ const { findOneData } = require("../services/dbServices");
 const message = require("../utils/message");
 
 
-const roleCheck = (roles) => {
+const roleCheck = {};
+roleCheck.roleMiddleware = (roles) =>
     async (req, res, next) => {
         try {
             const id = req.user.userId;
@@ -16,6 +17,5 @@ const roleCheck = (roles) => {
             return res.status(401).json({ msg: "unauthorized" })
         }
     }
-}
 
 module.exports = roleCheck;

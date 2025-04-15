@@ -37,8 +37,9 @@ userControllers.updateProfile = async (payload) => {
     if (payload.mobile) {
         data.mobile = payload.mobile;
     }
-
+console.log(data);
     const feedBack = await dbServices.updateOneData(userModel, { _id: payload.user.userId }, { $set: data }, { upsert: false });
+    console.log(feedBack);
     if (feedBack.matchedCount === 0) {
         throw createFailResponse(message.NOT_FOUND, "NOT_FOUND");
     }
@@ -62,10 +63,9 @@ userControllers.deleteProfileById = async (payload) => {
 
 userControllers.forgetPassword = async (payload) => {
     const { email } = payload;
-    console.log(email);
     try {
         const user = await dbServices.findOneData(userModel, { email: email });
-        console.log(user);
+      
         if (!user || user.isDeleted) {
             throw createFailResponse(message.USER_NOT_REGISTERED, "DATA_NOT_FOUND");
         }
@@ -93,13 +93,12 @@ userControllers.forgetPassword = async (payload) => {
 
 userControllers.changePassword = async (payload) => {
     const { password, token } = payload;
-    console.log(password, token);
     if (!token) {
         throw createFailResponse(message.TOKEN_NOT_AVAIL, "DATA_NOT_FOUND");
     }
     try {
         const ans = await utils.decryptJwt(token);
-        console.log(ans);
+        
         const pass = await utils.hashPassword(password);
         const feedBack = await dbServices.updateOneData(userModel, { _id: ans.userId }, { $set: { password: pass } }, { upsert: false });
         if (feedBack.matchedCount === 0) {
@@ -108,18 +107,20 @@ userControllers.changePassword = async (payload) => {
         const result = createSuccessResponseWithStatus(message.CHANGE_PASSWORD);
         return result;
     } catch (err) {
-        console.log(err);
         throw createFailResponse(message.P, "SERVER_ERROR");
     }
 }
 
-userControllers.getAllProfile = async (payload) => {
+userControllers.getAllUserProfile=async (payload) => {
     const { page, limit } = payload;
-
-    const skip = (page - 1) * limit;
-    const users = await dbServices.findData(userModel, {}).skip(skip).limit(limit);
-    const result = createSuccessResponseWithStatus(message.SUCCESS, users);
-    return result;
+    try {
+        const skip = (page - 1) * limit;
+        const users = await dbServices.findData(userModel, {}).skip(skip).limit(limit);
+        const result = createSuccessResponseWithStatus(message.SUCCESS, users);
+        return result;
+    } catch (err) {
+        throw createFailResponse(err.message, 'SERVER_ERROR');
+    }
 }
 
 userControllers.createNewReferessToken = async (payload) => {

@@ -1,8 +1,8 @@
 const dbServices = {};
 
 //find all data
-dbServices.findData = async(model,filter) => {
-    return model.find(filter).lean();
+dbServices.findData = (model,filter) => {
+    return model.find(filter);
 }
 
 //find Data

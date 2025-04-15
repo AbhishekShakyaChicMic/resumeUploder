@@ -1,7 +1,6 @@
 const joi = require('joi');
 const CONST = require('../../utils/constant');
 const userControllers = require('../../controller/userController');
-const { Query } = require('mongoose');
 
 
 module.exports = [
@@ -16,12 +15,19 @@ module.exports = [
         auth: CONST.AUTH_AVAIL,
         handler: userControllers.getProfileDetailsById,
     },
-    // {
-    //     method: "GET",
-    //     path: "/getProfile",
-    //     auth: CONST.AUTH_AVAIL,
-    //     handler: userControllers.,
-    // },
+    {
+        method: "GET",
+        path: "/getAllProfile",
+        joiSchema: {
+            query: joi.object({
+                page: joi.string().required(),
+                limit:joi.string().required(),
+            })
+        },
+        roles:["admin"],
+        auth: CONST.AUTH_AVAIL,
+        handler: userControllers.getAllUserProfile,
+    },
     {
         method: "POST",
         path: "/forgetPassword",
@@ -34,7 +40,7 @@ module.exports = [
     },
     {
         method: "PUT",
-        path: "/updateProfile",
+        path: "/updateProfile/:id",
         joiSchema: {
             params: joi.object({
                 id: joi.string().required(),
@@ -45,7 +51,7 @@ module.exports = [
     },
     {
         method: "DELETE",
-        path: "/deleteProfile",
+        path: "/deleteProfileById/:id",
         joiSchema: {
             params: joi.object({
                 id: joi.string().required(),
