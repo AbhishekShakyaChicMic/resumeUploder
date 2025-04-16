@@ -28,7 +28,7 @@ A robust and feature-rich Resume Uploader application built with Node.js. This p
 - **Backend:** Node.js with Express.js
 - **Database:** MongoDB (via Mongoose)
 - **Cache & Sessions:** Redis
-- **File Upload:** Multer
+- **File Upload:** Multer and using fs methord pipeling and axios
 - **Email Service:** Nodemailer
 - **Authentication:** JWT (JSON Web Tokens)
 - **Other Tools:** Environment configuration via dotenv
@@ -38,13 +38,18 @@ A robust and feature-rich Resume Uploader application built with Node.js. This p
 ```plaintext
 app/
    ├── controllers/         # Route controller files
+   ├── helpers/             # helper functions
    ├── middlewares/         # Custom middleware (authentication, error handling, etc.)
    ├── models/              # Mongoose models for Users and Resumes
-   ├── routes/              # Express route definitions
-   ├── uploads/             # Directory to store uploaded files
-   ├── utils/              # Utility functions (email, logging, etc.)
-config/
-├── controllers/         # Route controller files
-├── .env.example         # Example environment configuration
-├── package.json         # Project meta and dependencies
-└── README.md            # Project documentation (this file)
+   ├── routes/              # Express route definition
+   ├── services/            # Directory to store uploaded files
+   ├── startups/            # connection of all require tools
+   ├── utils/               # Utility functions (email, logging, etc.)
+config/                     # Config files in which we import url form .env file
+fileUploads
+   ├── fileFromUrls/        # file from urls
+                            # file upload from multer
+├── .env                    # Example environment configuration
+├── package.json            # Project meta and dependencies
+├── server.js/              # main file that execute
+└── README.md               # Project documentation (this file)
