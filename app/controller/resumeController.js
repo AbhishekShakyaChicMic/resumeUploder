@@ -3,9 +3,11 @@ const resumeModel = require("../model/resumeModel");
 const userModel = require("../model/userModel");
 const path = require('path');
 const { findOneData, updateOneData, findData } = require("../services/dbServices");
-const { transporter } = require("../services/emailServices");
 const message = require("../utils/message");
 const uploadFilefromUrl = require("../services/fileUploadService");
+const { redisClient } = require("../startup/redisStartup");
+const CONST = require("../utils/constant");
+const transporter1 = require("../services/emailServices");
 
 
 const resumeController = {};
@@ -43,6 +45,7 @@ resumeController.uploadResume = async (payload) => {
 
 resumeController.getResumeById = async (payload) => {
     const { id } = payload;
+    const cacheKey = `${id}`;
     const resume = await findOneData(resumeModel, { _id: id });
     const user = await findOneData(userModel, { _id: payload.user.userId });
     if ((resume.userId.toString() !== payload.user.userId.toString())&& user.role!=="admin") {
@@ -51,12 +54,15 @@ resumeController.getResumeById = async (payload) => {
     if (!resume || resume.isDeleted) {
         throw createFailResponse(message.NOT_FOUND,"NOT_FOUND");
     }
+    await redisClient.setEx(cacheKey, CONST.REDIS_TTL, JSON.stringify(resume));
     const result = createSuccessResponseWithStatus(message.SUCCESS,resume);
     return result;
 }
 
 resumeController.deleteResumeById = async (payload) => {
-    const resume = await findOneData(resumeModel, { userId: payload.id });
+    const { id } = payload;
+    const cacheKey = `${id}`;
+    const resume = await findOneData(resumeModel, { _id: id });
     const user = await findOneData(userModel, { _id: payload.user.userId });
     if ((resume.userId.toString() !== payload.user.userId.toString()) && user.role !== 'admin') {
         throw createFailResponse(message.FORBIDDEN, "FORBIDDEN");
@@ -65,7 +71,7 @@ resumeController.deleteResumeById = async (payload) => {
         throw createFailResponse(message.NOT_FOUND, "NOT_FOUND");
     }
     await updateOneData(resumeModel, { userId: payload.id }, { $set: {isDeleted:true}}, { upsert: false });
-
+    await redisClient.del(cacheKey);
     const result = createSuccessResponseWithStatus(message.SUCCESS);
     return result;
 }
@@ -81,7 +87,7 @@ resumeController.getAllResume=async (payload) => {
 resumeController.resumeUploadSuccess=async (payload) => {
     const { email } = payload;
 
-    const user = await dbServices.findOneData(userModel, { email: email });
+    const user = await findOneData(userModel, { email: email });
     
     if (!user || user.isDeleted) {
         throw createFailResponse(message.USER_NOT_REGISTERED, "DATA_NOT_FOUND");
@@ -96,16 +102,18 @@ resumeController.resumeUploadSuccess=async (payload) => {
     };
 
     try {
-        await transporter.sendMail(mailOptions);
+        await transporter1.sendMail(mailOptions);
         const result = createSuccessResponseWithStatus(message.SUCCESS);
         return result;
     } catch (err) {
-        throw createFailResponse(message.FAIL_TO_SEND_EMAIL);
+        console.log(err);
+        throw createFailResponse(message.FAIL_TO_SEND_EMAIL,"SERVER_ERROR");
     }
 }
 
 resumeController.updateResumeById=async (payload) => {
     const data = {};
+    const { id } = payload;
     if (payload.resumeUrl) {
         data.resumeUrl = payload.resumeUrl;
     }
@@ -115,7 +123,10 @@ resumeController.updateResumeById=async (payload) => {
     if (payload.fileType) {
         data.fileType = payload.fileType;
     }
-    const resume = await findOneData(resumeModel, { _id: payload.id });
+
+    const cacheKey=`${id}`
+
+    const resume = await findOneData(resumeModel, { _id:id });
     
     if (resume.userId.toString() !== payload.user.userId.toString()) {
         throw createFailResponse(message.FORBIDDEN, "FORBIDDEN");
@@ -123,6 +134,7 @@ resumeController.updateResumeById=async (payload) => {
     if (!resume || resume.isDeleted) {
         throw createFailResponse(message.NOT_FOUND, "DATA_NOT_FOUND");
     }
+    await redisClient.del(cacheKey);
     await updateOneData(resumeModel, { userId: payload.user.userId }, { $set: data }, { upsert: false });
     const result = createSuccessResponseWithStatus(message.SUCCESS, "SUCCESS");
     return result;

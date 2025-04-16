@@ -41,18 +41,22 @@ userControllers.updateProfile = async (payload) => {
     if (payload.mobile) {
         data.mobile = payload.mobile;
     }
-    console.log(data);
+    const cacheKey = `${id}`;
+
     const feedBack = await dbServices.updateOneData(userModel, { _id: payload.user.userId }, { $set: data }, { upsert: false });
-    console.log(feedBack);
     if (feedBack.matchedCount === 0) {
         throw createFailResponse(message.NOT_FOUND, "NOT_FOUND");
     }
+    await redisClient.del(cacheKey);
+    const user = await findOneData(userModel, { _id: payload.user.userId });
+    await redisClient.setEx(cacheKey, CONST.REDIS_TTL, JSON.stringify(user));
     const result = createSuccessResponseWithStatus(message.SUCCESS);
     return result;
 }
 
 userControllers.deleteProfileById = async (payload) => {
     const { id } = payload;
+    const cacheKey=`${id}`
     const user = await dbServices.findOneData(userModel, { _id: payload.user.userId });
     if ((id.toString() !== payload.user.userId.toString()) && user.role !== 'admin') {
         throw createFailResponse(message.FORBIDDEN, "FORBIDDEN");
@@ -61,6 +65,7 @@ userControllers.deleteProfileById = async (payload) => {
     if (feedBack.matchedCount === 0) {
         throw createFailResponse(message.NOT_FOUND, "NOT_FOUND");
     }
+    await redisClient.del(cacheKey);
     const result = createSuccessResponseWithStatus(message.SUCCESS);
     return result;
 }

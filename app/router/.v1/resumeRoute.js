@@ -33,6 +33,7 @@ module.exports = [
                 id: joi.string().required(),
             }),
         },
+        redis: CONST.REDIS_AVAIL,
         auth: CONST.AUTH_AVAIL,
         handler: getResumeById,
     },
@@ -67,7 +68,7 @@ module.exports = [
             body: joi.object({
                 email: joi.string().email().required(),
             }),
-        },
+        }, redis: CONST.REDIS_AVAIL,
         auth: CONST.AUTH_AVAIL,
         handler: resumeUploadSuccess,
     },
