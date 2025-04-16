@@ -7,11 +7,12 @@ module.exports = [
     {
         method: "GET",
         path: "/getProfileById/:id",
-            joiSchema: {
-                params: joi.object({
-                    id:joi.string().required(),
-                })
-            },
+        joiSchema: {
+            params: joi.object({
+                id: joi.string().required(),
+            })
+        },
+        redis: CONST.REDIS_AVAIL,
         auth: CONST.AUTH_AVAIL,
         handler: userControllers.getProfileDetailsById,
     },
@@ -21,10 +22,10 @@ module.exports = [
         joiSchema: {
             query: joi.object({
                 page: joi.string().required(),
-                limit:joi.string().required(),
+                limit: joi.string().required(),
             })
         },
-        roles:["admin"],
+        roles: ["admin"],
         auth: CONST.AUTH_AVAIL,
         handler: userControllers.getAllUserProfile,
     },
@@ -33,10 +34,10 @@ module.exports = [
         path: "/forgetPassword",
         joiSchema: {
             body: joi.object({
-                email:joi.string().email().required(),
+                email: joi.string().email().required(),
             })
         },
-        handler:userControllers.forgetPassword
+        handler: userControllers.forgetPassword
     },
     {
         method: "PUT",
@@ -65,12 +66,22 @@ module.exports = [
         path: "/changePassword",
         joiSchema: {
             body: joi.object({
-                password:joi.string().required(),
+                password: joi.string().required(),
             }),
             Query: joi.object({
-                token:joi.string().required()
+                token: joi.string().required()
             })
         },
-        handler:userControllers.changePassword,
+        handler: userControllers.changePassword,
+    },
+    {
+        method: "POST",
+        path: "/referaceToken",
+        joiSchema: {
+            Query: joi.object({
+                token: joi.string().required()
+            })
+        },
+        handler: userControllers.createNewReferessToken,
     }
 ]

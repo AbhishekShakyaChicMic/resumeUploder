@@ -2,10 +2,12 @@ const { createSuccessResponseWithStatus, createFailResponse } = require("../help
 const message = require('../utils/message');
 const userModel = require("../model/userModel");
 const dbServices = require("../services/dbServices");
-const { transporter } = require("../services/emailServices");
 const utils = require("../utils/utils");
 const transporter1 = require("../services/emailServices");
-
+const { redisClient } = require("../startup/redisStartup");
+const CONST = require("../utils/constant");
+const { v4: uuidv4 } = require('uuid');
+const { JWT_REFRESS_KEY, JWT_ACCESS_KEY } = require("../../config");
 
 const userControllers = {};
 
@@ -25,6 +27,8 @@ userControllers.getProfileDetailsById = async (payload) => {
         email: user.email,
         mobile: user.mobile,
     }
+    const cacheKey = `${id}`;
+    await redisClient.setEx(cacheKey, CONST.REDIS_TTL, JSON.stringify(data));
     const result = createSuccessResponseWithStatus(message.SUCCESS, data);
     return result;
 }
@@ -37,7 +41,7 @@ userControllers.updateProfile = async (payload) => {
     if (payload.mobile) {
         data.mobile = payload.mobile;
     }
-console.log(data);
+    console.log(data);
     const feedBack = await dbServices.updateOneData(userModel, { _id: payload.user.userId }, { $set: data }, { upsert: false });
     console.log(feedBack);
     if (feedBack.matchedCount === 0) {
@@ -65,7 +69,7 @@ userControllers.forgetPassword = async (payload) => {
     const { email } = payload;
     try {
         const user = await dbServices.findOneData(userModel, { email: email });
-      
+
         if (!user || user.isDeleted) {
             throw createFailResponse(message.USER_NOT_REGISTERED, "DATA_NOT_FOUND");
         }
@@ -98,7 +102,7 @@ userControllers.changePassword = async (payload) => {
     }
     try {
         const ans = await utils.decryptJwt(token);
-        
+
         const pass = await utils.hashPassword(password);
         const feedBack = await dbServices.updateOneData(userModel, { _id: ans.userId }, { $set: { password: pass } }, { upsert: false });
         if (feedBack.matchedCount === 0) {
@@ -111,7 +115,7 @@ userControllers.changePassword = async (payload) => {
     }
 }
 
-userControllers.getAllUserProfile=async (payload) => {
+userControllers.getAllUserProfile = async (payload) => {
     const { page, limit } = payload;
     try {
         const skip = (page - 1) * limit;
@@ -124,22 +128,31 @@ userControllers.getAllUserProfile=async (payload) => {
 }
 
 userControllers.createNewReferessToken = async (payload) => {
-    const { referaceToken } = payload;
+    const { token } = payload;
     try {
-        const verify = await utils.decryptJwt(referaceToken);
+        const verify = await utils.decryptJwt(token,JWT_REFRESS_KEY);
+        console.log(verify,JWT_REFRESS_KEY);
+        const cacheKey = `${verify.userId}` + 'refreshToken';
+
+        const redisReftoken = await redisClient.get(cacheKey);
+        console.log(await utils.compareHash(token, redisReftoken));
+
+        if (!await utils.compareHash(token, redisReftoken)) {
+            throw createFailResponse(message.INVALID_REFRANCE_TOKEN, "FORBIDDEN");
+        }
+
         const user = await dbServices.findOneData(userModel, { _id: verify.userId });
+        
         if (!user || user.isDeleted) {
             throw createFailResponse(message.USER_NOT_REGISTERED, "DATA_NOT_FOUND");
         }
-        referaceToken = await utils.encryptJwt({ userId: user._id }, "1d");
-        const accessToken = await utils.encryptJwt({ userId: user._id }, "1h");
+        const accessToken = await utils.encryptJwt({ userId: user._id , date: uuidv4() }, JWT_ACCESS_KEY,"1h");
 
         const data = {
-            accessToken,
-            refreshToken
+            accessToken
         }
 
-        const result = createSuccessResponseWithStatus(message.LOGIN, data);
+        const result = createSuccessResponseWithStatus(message.NEW_TOKEN, data);
         return result;
     } catch (err) {
         throw createFailResponse(err.message, "SERVER_ERROR");

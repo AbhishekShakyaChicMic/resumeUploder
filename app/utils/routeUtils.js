@@ -1,6 +1,8 @@
+const redisMiddleware = require("../middleware/redisMiddleware");
 const roleCheck = require("../middleware/roleMiddleware");
 const uploadMiddleware = require("../middleware/uploadMiddleware");
 const authService = require("../services/authServices");
+const message = require("./message");
 
 const routeUtils = {};
 
@@ -16,6 +18,9 @@ routeUtils.route = async(app, routes) => {
         }
         if (route.roles) {
             middlewares.push(roleCheck.roleMiddleware(route.roles));
+        }
+        if (route.redis) {
+            middlewares.push(redisMiddleware.cacheMiddleware());
         }
         if (route.upload) {
             middlewares.push(uploadMiddleware.uploadFile());
@@ -71,7 +76,7 @@ const getHandlerMethod = (route) => {
                 });
             }
             if (result?.data?.accessToken) {
-                return res.status(result.statusCode).json({status:result.status,statusCode:result.statusCode,token:result.data.accessToken});
+                return res.status(result.statusCode).json({status:result.status,statusCode:result.statusCode,message:result.message,type:result.type,token:result.data.accessToken});
             }
             if (result?.data?.filePath) {
                 const filePath = path.resolve(`${__dirname}/../${result?.data?.filePath}`);

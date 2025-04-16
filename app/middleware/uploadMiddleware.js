@@ -11,7 +11,7 @@ const storage = multer.diskStorage({
     }
 })
 
-//filter for uploading only .pdf and .txt file
+//filter for uploading only .pdf file
 
 const upload = multer({
     storage: storage,
@@ -29,7 +29,7 @@ function checkFileType(file, cb) {
     if (extname && mimetype) {
         cb(null, true);
     } else {
-        cb('Error, only send( pdf ) file');
+        cb('Error, only send ( pdf ) file');
     }
 }
 

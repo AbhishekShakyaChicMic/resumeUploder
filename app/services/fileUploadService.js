@@ -4,7 +4,7 @@ const path = require('path');
 
 const uploadFilefromUrl = async (url, localDir) => {
     const fileName = path.basename(new URL(url).pathname);
-    const localStorageUrl = path.join(localDir, fileName);
+    const localStorageUrl = path.join(localDir, Date.now()+fileName);
 
     const write = fs.createWriteStream(localStorageUrl);
 

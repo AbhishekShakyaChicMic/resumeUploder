@@ -95,7 +95,6 @@ function createSuccessResponseWithoutStatus(msg, data) {
 }
 
 function createFailResponse(msg, error_type, data) {
-    console.log(msg, error_type, data);
     return RESPONSE.ERROR[error_type](data,msg);
 }
 

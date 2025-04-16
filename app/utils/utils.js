@@ -11,10 +11,10 @@ utils.compareHash = (payloadPassword, userPassword) => bcrypt.compareSync(payloa
 
 //encrypt payloads
 
-utils.encryptJwt = (payload, expTime = '1m') => jwt.sign(payload, constants.JWT_SIGN_KEY, { algorithm: 'HS256', expiresIn: expTime });
+utils.encryptJwt = (payload,key, expTime = '1m') => jwt.sign(payload, key, { algorithm: 'HS256', expiresIn: expTime });
 
 //decryptJwt payloads
 
-utils.decryptJwt = (token) => jwt.verify(token, constants.JWT_SIGN_KEY, { algorithm: 'HS256' });
+utils.decryptJwt = (token,key) => jwt.verify(token, key, { algorithm: 'HS256' });
 
 module.exports = utils;

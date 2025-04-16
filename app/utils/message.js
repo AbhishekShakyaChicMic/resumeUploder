@@ -1,4 +1,6 @@
 module.exports = {
+    INVALID_REFRANCE_TOKEN:"Invaild refrance token",
+    NEW_TOKEN:"User  generate new token",
     FILE_DOWNLOAD: "Successfully downloaded",
     FILE_REQUIRED:"File required to upload",
     UPLOAD_RESUME:"Upload Resume Successfully",
