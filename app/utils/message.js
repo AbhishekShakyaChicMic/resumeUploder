@@ -1,5 +1,8 @@
 module.exports = {
-    INVALID_REFRANCE_TOKEN:"Invaild refrance token",
+    EVALUATE_FAIL: 'Failed to evaluate resume',
+    RESUME_TEXT_REQUIRE:"Text require",
+    INVAILD_URL:"Invaild Url",
+    INVALID_REFRESH_TOKEN:"Invaild refresh token",
     NEW_TOKEN:"User  generate new token",
     FILE_DOWNLOAD: "Successfully downloaded",
     FILE_REQUIRED:"File required to upload",

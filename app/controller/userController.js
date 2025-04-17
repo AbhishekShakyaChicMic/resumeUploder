@@ -56,7 +56,7 @@ userControllers.updateProfile = async (payload) => {
 
 userControllers.deleteProfileById = async (payload) => {
     const { id } = payload;
-    const cacheKey=`${id}`
+    const cacheKey = `${id}`
     const user = await dbServices.findOneData(userModel, { _id: payload.user.userId });
     if ((id.toString() !== payload.user.userId.toString()) && user.role !== 'admin') {
         throw createFailResponse(message.FORBIDDEN, "FORBIDDEN");
@@ -132,26 +132,28 @@ userControllers.getAllUserProfile = async (payload) => {
     }
 }
 
-userControllers.createNewReferessToken = async (payload) => {
+userControllers.createNewRefreshToken = async (payload) => {
     const { token } = payload;
     try {
-        const verify = await utils.decryptJwt(token,JWT_REFRESS_KEY);
-        console.log(verify,JWT_REFRESS_KEY);
+        const verify = await utils.decryptJwt(token, JWT_REFRESS_KEY);
+        console.log(verify);
         const cacheKey = `${verify.userId}` + 'refreshToken';
 
         const redisReftoken = await redisClient.get(cacheKey);
+
         console.log(await utils.compareHash(token, redisReftoken));
 
         if (!await utils.compareHash(token, redisReftoken)) {
-            throw createFailResponse(message.INVALID_REFRANCE_TOKEN, "FORBIDDEN");
+            throw createFailResponse(message.INVALID_REFRESH_TOKEN, "FORBIDDEN");
         }
 
         const user = await dbServices.findOneData(userModel, { _id: verify.userId });
-        
+
+
         if (!user || user.isDeleted) {
             throw createFailResponse(message.USER_NOT_REGISTERED, "DATA_NOT_FOUND");
         }
-        const accessToken = await utils.encryptJwt({ userId: user._id , date: uuidv4() }, JWT_ACCESS_KEY,"1h");
+        const accessToken = await utils.encryptJwt({ userId: user._id, date: uuidv4() }, JWT_ACCESS_KEY, "1h");
 
         const data = {
             accessToken

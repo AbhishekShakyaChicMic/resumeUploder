@@ -1,5 +1,5 @@
 const joi = require('joi');
-const { uploadResume, uploadInStorage, getResumeById, deleteResumeById, getAllResume, resumeUploadSuccess, updateResumeById, uploadfileFormUrl } = require('../../controller/resumeController');
+const { uploadResume, uploadInStorage, getResumeById, deleteResumeById, getAllResume, resumeUploadSuccess, updateResumeById, uploadfileFormUrl, getAlltextFromPdf, evaluateResume, viewResumeOfUserById } = require('../../controller/resumeController');
 const { Query } = require('mongoose');
 const CONST = require('../../utils/constant');
 
@@ -98,5 +98,39 @@ module.exports = [
         },
         auth: CONST.AUTH_AVAIL,
         handler: uploadfileFormUrl,
+    },
+    {
+        method: "GET",
+        path: "/getFileTextData",
+        upload: CONST.UPLOAD_AVAIL,
+        auth: CONST.AUTH_AVAIL,
+        handler: getAlltextFromPdf,
+    },
+    {
+        method: "GET",
+        path: "/evaluateResume",
+        joiSchema: {
+            body: joi.object({
+                resumeText: joi.string().required(),
+            })
+        },
+        auth: CONST.AUTH_AVAIL,
+        handler: evaluateResume,
+    },
+    {
+        method: "GET",
+        path: "/ResumeListOfUser/:id",
+        joiSchema: {
+            parms: joi.object({
+                id: joi.string().required(),
+            }),
+            Query: joi.object({
+                page: joi.string().required(),
+                limit: joi.string().required(),
+            }),
+        },
+        //role: ['admin'],
+        auth: CONST.AUTH_AVAIL,
+        handler: viewResumeOfUserById,
     },
 ]

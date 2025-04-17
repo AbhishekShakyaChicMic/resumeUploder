@@ -76,12 +76,12 @@ module.exports = [
     },
     {
         method: "POST",
-        path: "/referaceToken",
+        path: "/refreshToken",
         joiSchema: {
             Query: joi.object({
                 token: joi.string().required()
             })
         },
-        handler: userControllers.createNewReferessToken,
+        handler: userControllers.createNewRefreshToken,
     }
 ]

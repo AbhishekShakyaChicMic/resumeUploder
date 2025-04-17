@@ -80,7 +80,7 @@ const getHandlerMethod = (route) => {
             }
             if (result?.data?.filePath) {
                 const filePath = path.resolve(`${__dirname}/../${result?.data?.filePath}`);
-                return res.status(result.statusCode).sendFile(filePath);
+                return res.status(result.statusCode).json(result);
             }
             if (result?.fileData) {
                 res.attachment(result.fileName);

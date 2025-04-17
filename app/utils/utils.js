@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs'); // or 'bcrypt' if you're using that package
 const constants=require('./constant')
-const jwt= require('jsonwebtoken')
+const jwt = require('jsonwebtoken')
+const { isUrl } = require('check-valid-url');
 const utils = {};
 
 //function for hash 
@@ -16,5 +17,12 @@ utils.encryptJwt = (payload,key, expTime = '1m') => jwt.sign(payload, key, { alg
 //decryptJwt payloads
 
 utils.decryptJwt = (token,key) => jwt.verify(token, key, { algorithm: 'HS256' });
+
+//to checkUrl
+utils.checkUrl = (url) => {
+        const validate = isUrl(url);
+        if (validate) return true;
+        else return false;
+}
 
 module.exports = utils;
