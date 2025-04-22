@@ -19,15 +19,15 @@ dbServices.updateOneData=async (model,filter,query,options) => {
 
 
 dbServices.lookupDataWithPagination = (model, from, localField, foreignField, as, userId, skip, limit) => {
-    console.log(skip,limit);
+    
     return model.aggregate([
         { $match: { _id: new mongoose.Types.ObjectId(userId) } },
         {
             $lookup: {
-                from: from,                       // "resumes"  -->MongoDB collection name
-                localField: localField,           // "_id"      -->in user
-                foreignField: foreignField,       // "userId"   -->this fiel
-                as: as                            // "resumes"  -->as aoutput
+                from: from,                       
+                localField: localField,        
+                foreignField: foreignField,       
+                as: as                           
             }
         },
         {

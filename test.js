@@ -20,8 +20,22 @@
 
 //use js function
 
-const checkUrls = (...urls) => !urls.find((url) => !(url.startsWith('https://') || url.startsWith('http://')))
+//const checkUrls = (...urls) => !urls.find((url) => !(url.startsWith('https://') || url.startsWith('http://')))
 
+const checkUrls = (...urls) =>
+    !urls.find((url) => {
+        try {
+            new URL(url);
+            return false;
+        } catch (_) {
+            return true;
+        }
+    });
 
-const ans = checkUrls('http://www.raju.com/javascript/', 'htt://www.raju.com/javascript/', 'http://www.raju.com/javascript/');
+const ans = checkUrls(
+    'http://www.raju.com/javascript/',
+    'httpw://www.raju.com/javascript/',
+    'http://www.raju.com/javascript/'
+);
+
 console.log(ans);

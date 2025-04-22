@@ -47,7 +47,8 @@ resumeController.uploadResume = async (payload) => {
         fileType
     };
 
-    await updateOneData(resumeModel, { userId: payload.user.userId }, { $set: resumeData }, { upsert: true });
+    const doc = new resumeModel(resumeData);
+    await doc.save();
 
     const result = createSuccessResponseWithStatus(message.SUCCESS, resumeData);
     return result;
@@ -216,7 +217,7 @@ resumeController.evaluateResume = async (payload) => {
                 { role: 'user', content: prompt }
             ]
         })));
-        console.log(response);
+        
         const evaluation = response.choices[0].message.content;
         const result = createSuccessResponseWithStatus(message.SUCCESS, evaluation);
         return result;
