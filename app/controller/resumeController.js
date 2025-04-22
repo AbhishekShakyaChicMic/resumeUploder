@@ -232,6 +232,11 @@ resumeController.viewResumeOfUserById = async (payload) => {
     const { id, page = 1, limit = 10 } = payload;
     const skip = (page - 1) * limit;
 
+    const user = await findOneData(userModel, { _id: payload.user.userId });
+    if (id.toString() !== payload.user.userId ||user.role!=='admin') {
+        throw createFailResponse(message.FORBIDDEN, "FORBIDDEN");
+    }
+
     const resumes = await lookupDataWithPagination(
         userModel,
         'resumes',  
