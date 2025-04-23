@@ -140,9 +140,7 @@ userControllers.createNewRefreshToken = async (payload) => {
         const cacheKey = `${verify.userId}` + 'refreshToken';
 
         const redisReftoken = await redisClient.get(cacheKey);
-
-        console.log(await utils.compareHash(token, redisReftoken));
-
+        
         if (!await utils.compareHash(token, redisReftoken)) {
             throw createFailResponse(message.INVALID_REFRESH_TOKEN, "FORBIDDEN");
         }
@@ -163,6 +161,30 @@ userControllers.createNewRefreshToken = async (payload) => {
         return result;
     } catch (err) {
         throw createFailResponse(err.message, "SERVER_ERROR");
+    }
+}
+
+userControllers.logoutController = async (payload) => {
+    const id = payload.user.userId;
+    try {
+        //Redis key that store in redis database
+        const cacheKey = `${id}` + 'refreshToken';
+        console.log(cacheKey);
+        //delete refresh token that is store in redis database
+        await redisClient.del(cacheKey);
+
+        const exist = await redisClient.get(cacheKey);
+        console.log("Just saved?", exist); // Should show the hashed value
+
+        //Send success response
+        const exists = await redisClient.get(cacheKey);
+        console.log("Just saved?", exists); // Should show the hashed value
+
+        const result = createSuccessResponseWithStatus(message.LOGOUT_SUCCESS, "SUCCESS");
+        return result;
+        
+    } catch (err) {
+        throw createFailResponse(err.message,"SERVER_ERROR")
     }
 }
 

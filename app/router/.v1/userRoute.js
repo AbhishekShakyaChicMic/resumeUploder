@@ -83,5 +83,11 @@ module.exports = [
             })
         },
         handler: userControllers.createNewRefreshToken,
+    },
+    {
+        method: "POST",
+        path: "/logout",
+        auth: CONST.AUTH_AVAIL,
+        handler: userControllers.logoutController,
     }
 ]

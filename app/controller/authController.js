@@ -3,7 +3,6 @@ const message = require('../utils/message');
 const userModel = require("../model/userModel");
 const dbServices = require("../services/dbServices");
 const utils = require("../utils/utils");
-const { redisClient } = require("../startup/redisStartup");
 const { v4: uuidv4 } = require('uuid');
 const { JWT_ACCESS_KEY, JWT_REFRESS_KEY } = require("../../config");
 
@@ -34,7 +33,6 @@ authControllers.login = async (payload) => {
         throw createFailResponse(message.WRONG_PASSWORD, "FORBIDDEN");
     }
     
-    const cacheKey = `${user._id}` + 'refreshToken';
     const accessToken = utils.encryptJwt({ userId: user._id, date: uuidv4() },JWT_ACCESS_KEY, '20m');
     const refreshToken = utils.encryptJwt({ userId: user._id,date:uuidv4()},JWT_REFRESS_KEY, '1d');
     
@@ -43,10 +41,6 @@ authControllers.login = async (payload) => {
         refreshToken
     }
 
-    const hashedToken = await utils.hashPassword(refreshToken);
-
-    await redisClient.setEx(cacheKey, 60 * 60 * 24 * 1, hashedToken);
-    
     const result = createSuccessResponseWithStatus(message.LOGIN, data);
     return result;
 }
