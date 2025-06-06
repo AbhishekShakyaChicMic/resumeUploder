@@ -7,7 +7,7 @@ const CONST = require('../../utils/constant');
 module.exports = [
     {
         method: "POST",
-        path: "/uploadResume",
+        path: "/v1/uploadResume",
         joiSchema: {
             body: joi.object({
                 resumeUrl: joi.string().required(),
@@ -20,14 +20,14 @@ module.exports = [
     },
     {
         method: "POST",
-        path: "/upload",
+        path: "/v1/upload",
         auth: CONST.AUTH_AVAIL,
         upload:CONST.UPLOAD_AVAIL,
         handler: uploadInStorage,
     },
     {
         method: "get",
-        path: "/getResumeById/:id",
+        path: "/v1/getResumeById/:id",
         joiSchema: {
             params: joi.object({
                 id: joi.string().required(),
@@ -39,7 +39,7 @@ module.exports = [
     },
     {
         method: "DELETE",
-        path: "/deleteResumeById/:id",
+        path: "/v1/deleteResumeById/:id",
         joiSchema: {
             params: joi.object({
                 id: joi.string().required(),
@@ -50,7 +50,7 @@ module.exports = [
     },
     {
         method: "GET",
-        path: "/getAllResume",
+        path: "/v1/getAllResume",
         joiSchema: {
             Query: joi.object({
                 page: joi.string().required(),
@@ -63,7 +63,7 @@ module.exports = [
     },
     {
         method: "POST",
-        path: "/uploadResumeSuccess",
+        path: "/v1/uploadResumeSuccess",
         joiSchema: {
             body: joi.object({
                 email: joi.string().email().required(),
@@ -74,7 +74,7 @@ module.exports = [
     },
     {
         method: "PUT",
-        path: "/updateResumeById/:id",
+        path: "/v1/updateResumeById/:id",
         joiSchema: {
             body: joi.object({
                 resumeUrl: joi.string(),
@@ -90,7 +90,7 @@ module.exports = [
     },
     {
         method: "POST",
-        path: "/uploadfileFormUrl",
+        path: "/v1/uploadfileFormUrl",
         joiSchema: {
             Query: joi.object({
                 url: joi.string().required(),
@@ -101,14 +101,14 @@ module.exports = [
     },
     {
         method: "GET",
-        path: "/getFileTextData",
+        path: "/v1/getFileTextData",
         upload: CONST.UPLOAD_AVAIL,
         auth: CONST.AUTH_AVAIL,
         handler: getAlltextFromPdf,
     },
     {
         method: "GET",
-        path: "/evaluateResume",
+        path: "/v1/evaluateResume",
         joiSchema: {
             body: joi.object({
                 resumeText: joi.string().required(),
@@ -119,7 +119,7 @@ module.exports = [
     },
     {
         method: "GET",
-        path: "/ResumeListOfUser/:id",
+        path: "/v1/ResumeListOfUser/:id",
         joiSchema: {
             parms: joi.object({
                 id: joi.string().required(),

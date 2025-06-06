@@ -5,7 +5,7 @@ const authControllers = require('../../controller/authController');
 module.exports = [
     {
         method: "POST",
-        path: "/signup",
+        path: "/v1/signup",
         joiSchema: {
             body: joi.object({
                 name: joi.string().min(3).required(),
@@ -18,7 +18,7 @@ module.exports = [
     },
     {
         method: "POST",
-        path: "/login",
+        path: "/v1/login",
         joiSchema: {
             body: joi.object({
                 email: joi.string().email().required(),

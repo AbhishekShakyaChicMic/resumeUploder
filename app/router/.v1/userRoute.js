@@ -6,7 +6,7 @@ const userControllers = require('../../controller/userController');
 module.exports = [
     {
         method: "GET",
-        path: "/getProfileById/:id",
+        path: "/v1/getProfileById/:id",
         joiSchema: {
             params: joi.object({
                 id: joi.string().required(),
@@ -18,7 +18,7 @@ module.exports = [
     },
     {
         method: "GET",
-        path: "/getAllProfile",
+        path: "/v1/getAllProfile",
         joiSchema: {
             query: joi.object({
                 page: joi.string().required(),
@@ -31,7 +31,7 @@ module.exports = [
     },
     {
         method: "POST",
-        path: "/forgetPassword",
+        path: "/v1/forgetPassword",
         joiSchema: {
             body: joi.object({
                 email: joi.string().email().required(),
@@ -41,7 +41,7 @@ module.exports = [
     },
     {
         method: "PUT",
-        path: "/updateProfile/:id",
+        path: "/v1/updateProfile/:id",
         joiSchema: {
             params: joi.object({
                 id: joi.string().required(),
@@ -52,7 +52,7 @@ module.exports = [
     },
     {
         method: "DELETE",
-        path: "/deleteProfileById/:id",
+        path: "/v1/deleteProfileById/:id",
         joiSchema: {
             params: joi.object({
                 id: joi.string().required(),
@@ -63,7 +63,7 @@ module.exports = [
     },
     {
         method: "POST",
-        path: "/changePassword",
+        path: "/v1/changePassword",
         joiSchema: {
             body: joi.object({
                 password: joi.string().required(),
@@ -76,12 +76,18 @@ module.exports = [
     },
     {
         method: "POST",
-        path: "/refreshToken",
+        path: "/v1/refreshToken",
         joiSchema: {
             Query: joi.object({
                 token: joi.string().required()
             })
         },
         handler: userControllers.createNewRefreshToken,
+    },
+    {
+        method: "POST",
+        path: "/v1/logout",
+        auth: CONST.AUTH_AVAIL,
+        handler: userControllers.logoutController,
     }
 ]

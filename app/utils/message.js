@@ -1,4 +1,5 @@
 module.exports = {
+    LOGOUT_SUCCESS:"User logout successfully",
     EVALUATE_FAIL: 'Failed to evaluate resume',
     RESUME_TEXT_REQUIRE:"Text require",
     INVAILD_URL:"Invaild Url",
