@@ -24,6 +24,7 @@ authControllers.signup = async (payload) => {
 
 authControllers.login = async (payload) => {
     const { email, password } = payload;
+    console.log(email,password);
     const user = await dbServices.findOneData(userModel, { email: email });
     if (!user || user.isDeleted) {
         throw createFailResponse(message.USER_NOT_REGISTERED, "DATA_NOT_FOUND");
@@ -32,7 +33,7 @@ authControllers.login = async (payload) => {
         throw createFailResponse(message.WRONG_PASSWORD, "FORBIDDEN");
     }
     
-    const accessToken = utils.encryptJwt({userId:user._id}, '1m');
+    const accessToken = utils.encryptJwt({userId:user._id}, '10m');
     const refreshToken = utils.encryptJwt({ userId: user._id }, '1d');
     
     const data = {

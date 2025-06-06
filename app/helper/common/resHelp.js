@@ -10,7 +10,7 @@ const RESPONSE = {
                 type: "BAD_REQUEST"
             };
             if (data) {
-                obj = { ...obj, ...data };
+                obj = { ...obj, data };
             }
             return obj;
         },
@@ -22,7 +22,7 @@ const RESPONSE = {
                 type:"DATA_NOT_FOUND",
             }
             if (data) {
-                obj = { ...obj, ...data };
+                obj = { ...obj, data };
             }
             return obj;
         },
@@ -34,7 +34,7 @@ const RESPONSE = {
                 type:"ALREADY_EXISTS",
             }
             if (data) {
-                obj = { ...obj, ...data };
+                obj = { ...obj, data };
             }
             return obj;
         },
@@ -46,7 +46,7 @@ const RESPONSE = {
                 type: "FORBIDDEN",
             }
             if (data) {
-                obj = { ...obj, ...data };
+                obj = { ...obj, data };
             }
             return obj;
         },
@@ -58,7 +58,7 @@ const RESPONSE = {
                 type: "SERVER ERROR"
             };
             if (data) {
-                obj = { ...obj, ...data };
+                obj = { ...obj, data };
             }
             return obj;
         }
@@ -72,14 +72,14 @@ const RESPONSE = {
                 type:"SUCCESS"
             };
             if(data) {
-                obj = { ...obj, ...data };
+                obj = { ...obj,data };
             }
             return obj;
         },
         WITHOUTSTATUS: (data) => {
             let obj = {};
             if (data) {
-                obj = { ...data };
+                obj = { data };
             }
             return obj;
         }

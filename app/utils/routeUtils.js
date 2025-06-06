@@ -1,3 +1,5 @@
+const roleCheck = require("../middleware/roleMiddleware");
+const uploadMiddleware = require("../middleware/uploadMiddleware");
 const authService = require("../services/authServices");
 
 const routeUtils = {};
@@ -11,6 +13,12 @@ routeUtils.route = async(app, routes) => {
         }
         if (route.auth) {
             middlewares.push(authService.authenticateUser());
+        }
+        if (route.roles) {
+            middlewares.push(roleCheck.roleMiddleware(route.roles));
+        }
+        if (route.upload) {
+            middlewares.push(uploadMiddleware.uploadFile());
         }
         app.route(route.path)[route.method.toLowerCase()](...middlewares,getHandlerMethod(route));
     });
@@ -44,40 +52,41 @@ const vaildateJoiSchema = (route) => (req, res, next) => {
 const getHandlerMethod = (route) => {
     const { handler } = route;
     return (req, res) => {
-
         const payload = {
             ...(req.body || {}),
             ...(req.params || {}),
             ...(req.query || {}),
             user: (req.user || {}),
+            filePath:(req.filePath||{})
         };
 
 
         handler(payload).then((result) => {
-            if (result.refreshToken) {
-                res.cookie('refreshToken', result.refreshToken, {
+            if (result?.data?.refreshToken) {
+                res.cookie('refreshToken', result.data.refreshToken, {
                     httpOnly: true,
-                    secure: true,      // only over HTTPS
-                    sameSite: 'Strict', // or 'Lax' / 'None'
-                    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+                    secure: true,      
+                    sameSite: 'Strict',
+                    maxAge: 1 * 24 * 60 * 60 * 1000
                 });
             }
-            if (result.accessToken) {
-                return res.status(result.statusCode).json({msg:result.status,token:result.accessToken});
+            if (result?.data?.accessToken) {
+                return res.status(result.statusCode).json({status:result.status,statusCode:result.statusCode,token:result.data.accessToken});
             }
-            if (result?.filePath) {
-                upload(req, res, (err) => {
-                    if (err) {
-                        return res.status(500).json({ err: err.message });
-                    }
-                    if (!req.file) {
-                        return res.status(400).json({ msg: "File is required to upload" });
-                    }
-                    return res.status(200).send(result.filePath);
-                })
+            if (result?.data?.filePath) {
+                const filePath = path.resolve(`${__dirname}/../${result?.data?.filePath}`);
+                return res.status(result.statusCode).sendFile(filePath);
             }
-            if (result.statusCode) {
-                return res.status(result.statusCode).json(result);
+            if (result?.fileData) {
+                res.attachment(result.fileName);
+                res.send(result.fileData.Body);
+                return res;
+            }
+            if (result?.redirectUrl) {
+                return res.redirect(result.redirectUrl);
+            }
+            else if (result?.statusCode) {
+                return res.status(result?.statusCode).json(result);
             } else {
                 return res.json(result);
             }

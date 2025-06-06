@@ -1,3 +1,4 @@
+const { required } = require('joi');
 const mongoose = require('mongoose');
 
 const resumeSchema = new mongoose.Schema({
@@ -6,11 +7,15 @@ const resumeSchema = new mongoose.Schema({
         ref: "User",
         required: true,
     },
-    resumelink: {
-        type: mongoose.Schema.Types.ObjectId,
+    resumeUrl: {
+        type: String,
         required: true,
     },
     fileName: {
+        type: String,
+        required: true,
+    },
+    fileType: {
         type: String,
         required: true,
     },
