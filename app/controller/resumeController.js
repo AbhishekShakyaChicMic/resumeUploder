@@ -3,7 +3,7 @@ const resumeModel = require("../model/resumeModel");
 const userModel = require("../model/userModel");
 const path = require('path');
 const { default: OpenAI } = require('openai');
-const { findOneData, updateOneData, findData, lookupData, lookupDataWithPagination } = require("../services/dbServices");
+const { findOneData, updateOneData, findData, lookupDataWithPagination } = require("../services/dbServices");
 const message = require("../utils/message");
 const uploadFilefromUrl = require("../services/fileUploadService");
 const { redisClient } = require("../startup/redisStartup");
@@ -13,6 +13,7 @@ const pdf = require('pdf-parse');
 const fs = require('fs');
 const utils = require("../utils/utils");
 const { OPENAI_KEY } = require("../../config");
+
 const openai = new OpenAI({
     apiKey: OPENAI_KEY,
     baseURL: 'https://openrouter.ai/api/v1',
@@ -36,6 +37,7 @@ resumeController.uploadResume = async (payload) => {
 
     const user = await findOneData(userModel, { _id: payload.user.userId });
 
+    //check user exists or not
     if (!user || user.isDeleted) {
         throw createFailResponse(message.USER_NOT_REGISTERED, "DATA_NOT_FOUND");
     }
@@ -47,6 +49,7 @@ resumeController.uploadResume = async (payload) => {
         fileType
     };
 
+    //store resume data in database
     const doc = new resumeModel(resumeData);
     await doc.save();
 
@@ -56,37 +59,56 @@ resumeController.uploadResume = async (payload) => {
 
 resumeController.getResumeById = async (payload) => {
     const { id } = payload;
+
+    //Redis key
     const cacheKey = `${id}`;
+
     const resume = await findOneData(resumeModel, { _id: id });
     const user = await findOneData(userModel, { _id: payload.user.userId });
+
+    //Check Resume userId and Auth userId is matched or not role admin or not
     if ((resume.userId.toString() !== payload.user.userId.toString()) && user.role !== "admin") {
         throw createFailResponse(message.FORBIDDEN, "FORBIDDEN")
     }
+
+    //check resume is deleted or not
     if (!resume || resume.isDeleted) {
         throw createFailResponse(message.NOT_FOUND, "NOT_FOUND");
     }
+
+    //store in redis memory 
     await redisClient.setEx(cacheKey, CONST.REDIS_TTL, JSON.stringify(resume));
+
     const result = createSuccessResponseWithStatus(message.SUCCESS, resume);
     return result;
 }
 
 resumeController.deleteResumeById = async (payload) => {
     const { id } = payload;
+
+    //Redis key 
     const cacheKey = `${id}`;
+
     const resume = await findOneData(resumeModel, { _id: id });
     const user = await findOneData(userModel, { _id: payload.user.userId });
+
+    //check Auth userId and Resume userId
     if ((resume.userId.toString() !== payload.user.userId.toString()) && user.role !== 'admin') {
         throw createFailResponse(message.FORBIDDEN, "FORBIDDEN");
     }
     if (!resume || resume.isDeleted) {
         throw createFailResponse(message.NOT_FOUND, "NOT_FOUND");
     }
+
+    //update resume status in database
     await updateOneData(resumeModel, { userId: payload.id }, { $set: { isDeleted: true } }, { upsert: false });
     await redisClient.del(cacheKey);
+
     const result = createSuccessResponseWithStatus(message.SUCCESS);
     return result;
 }
 
+//incompleate logics for project
 resumeController.getAllResume = async (payload) => {
     const { page=1, limit=10 } = payload;
     const skip = (page - 1) * limit;
@@ -100,10 +122,12 @@ resumeController.resumeUploadSuccess = async (payload) => {
 
     const user = await findOneData(userModel, { email: email });
 
+    //User exists or not
     if (!user || user.isDeleted) {
         throw createFailResponse(message.USER_NOT_REGISTERED, "DATA_NOT_FOUND");
     }
 
+    // send this message to user email
     const mailOptions = {
         from: '"Abhishekh kumar" <abhi75191112@gmail.com>',
         to: user.email,
@@ -123,6 +147,8 @@ resumeController.resumeUploadSuccess = async (payload) => {
 }
 
 resumeController.updateResumeById = async (payload) => {
+
+    //Collection of data that user wants to update
     const data = {};
     const { id } = payload;
     if (payload.resumeUrl) {
@@ -135,30 +161,44 @@ resumeController.updateResumeById = async (payload) => {
         data.fileType = payload.fileType;
     }
 
+    //redis key
     const cacheKey = `${id}`
 
     const resume = await findOneData(resumeModel, { _id: id });
 
+    //check resume userId and auth userId
     if (resume.userId.toString() !== payload.user.userId.toString()) {
         throw createFailResponse(message.FORBIDDEN, "FORBIDDEN");
     }
     if (!resume || resume.isDeleted) {
         throw createFailResponse(message.NOT_FOUND, "DATA_NOT_FOUND");
     }
+
+    //deleted data from redis cache memory
     await redisClient.del(cacheKey);
+
+    //update data in data base
     await updateOneData(resumeModel, { userId: payload.user.userId }, { $set: data }, { upsert: false });
+
     const result = createSuccessResponseWithStatus(message.SUCCESS, "SUCCESS");
     return result;
 }
 
 resumeController.uploadfileFormUrl = async (payload) => {
+    //Url of file that upload in storage
     const { url } = payload;
+
+    //check valid url
     if (!utils.checkUrl(url)) {
         throw createFailResponse(message.INVAILD_URL, "BAD_REQUEST");
     }
+
+    //path where file storage 
     const dirPath = path.join(__dirname, '../../uploadFile/fromUrls');
+
     try {
         await uploadFilefromUrl(url, dirPath);
+
         const result = createSuccessResponseWithStatus(message.FILE_DOWNLOAD);
         return result;
     } catch (error) {
@@ -172,18 +212,24 @@ resumeController.getAlltextFromPdf = async (payload) => {
     if (!filePath) {
         throw createFailResponse(message.FILE_REQUIRED, "BAD_REQUEST");
     }
+
     try {
         let fileError, filedata;
+
+        //read file from storage
         const dataBuffer = fs.readFileSync(path.join(__dirname, `../../${filePath.path}`));
+
         await pdf(dataBuffer).then((data) => {
             filedata = JSON.parse(JSON.stringify(data.text));
         }).catch((err) => {
             console.log(err);
             fileError = err.message;
         })
+
         if (fileError) {
             throw createFailResponse(fileError, "SERVER_ERROR")
         }
+
         const result = createSuccessResponseWithStatus(message.SUCCESS, filedata);
         return result;
     } catch (err) {
@@ -193,6 +239,7 @@ resumeController.getAlltextFromPdf = async (payload) => {
 
 resumeController.evaluateResume = async (payload) => {
     const { resumeText } = payload;
+
     if (!resumeText) {
         throw createFailResponse(message.RESUME_TEXT_REQUIRE, "BAD_REQUEST");
     }
@@ -209,6 +256,8 @@ resumeController.evaluateResume = async (payload) => {
         }
 
         Resume:${resumeText}`;
+    
+    
     try {
         const response = JSON.parse(JSON.stringify(await openai.chat.completions.create({
             model: 'arliai/qwq-32b-arliai-rpr-v1:free', 
@@ -231,6 +280,12 @@ resumeController.evaluateResume = async (payload) => {
 resumeController.viewResumeOfUserById = async (payload) => {
     const { id, page = 1, limit = 10 } = payload;
     const skip = (page - 1) * limit;
+
+    const user = await findOneData(userModel, { _id: payload.user.userId });
+    //check id and Auth userId is Same or not or user is admon or not
+    if (id.toString() !== payload.user.userId ||user.role!=='admin') {
+        throw createFailResponse(message.FORBIDDEN, "FORBIDDEN");
+    }
 
     const resumes = await lookupDataWithPagination(
         userModel,
